@@ -22,3 +22,5 @@ class test_class:
 c = test_class(5)
 print(c["val"])
 print(c["asd"])
+
+print(max(6,None))

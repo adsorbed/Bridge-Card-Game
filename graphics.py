@@ -27,13 +27,13 @@ mainframe = ttk.Frame(root, padding="20")
 mainframe.grid(column=0, row=0)
 b = Bridge_Game(root, mainframe, hands)
 
+#b.game()
 
 
 # card_played = ttk.Entry(mainframe, width = 7)
 # card_played.grid(column=3,row=6,sticky=S)
 
-ttk.Button(mainframe, text="Play Card", command=b.play_trick).grid(column=4,row=6)
-root.bind("<Return>", b.play_trick)
+
 
 root.mainloop()
 

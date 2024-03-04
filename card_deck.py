@@ -2,14 +2,18 @@ import random
 
 class Card:
     def __init__(self, val, suit):
-        self.suit = suit
+        self.card_appearances = {14:"A", 13:"K", 12:"Q", 11:"J"}
         self.val = val
+        self.suit = suit
+        
 
     def __str__(self) -> str:
-        return str(self.val) + str(self.suit)
+        val = self.card_appearances.get(self.val, self.val)
+        return str(val) + str(self.suit)
     
     def __repr__(self) -> str:
-        return str(self.val) + str(self.suit)
+        val = self.card_appearances.get(self.val, self.val)
+        return str(val) + str(self.suit)
     
     def __eq__(self, other) -> bool:
         return (self.suit == other.suit) and (self.val == other.val)
@@ -17,7 +21,7 @@ class Card:
 class Deck:
     def __init__(self):
         self.suits = ["S","H","D","C"]
-        self.values = ["A","K","Q","J",10,9,8,7,6,5,4,3,2]
+        self.values = [14,13,12,11,10,9,8,7,6,5,4,3,2]
         self.cards = []
         for s in self.suits:
             for v in self.values:
@@ -31,14 +35,19 @@ class Deck:
 
     def deal(self):
         return (self.cards[:13], self.cards[13:26], self.cards[26:39], self.cards[39:52])
+    
+
+
+
+
 
 def sort_hand(hand):
-    # sorts the cards in a hand in descending order by suit and value. sorted is stable, so we can sot by value and then suit to correctly sort the hand
-    def number_sort(card):
-        value_picture_cards = {"A":14,"K":13,"Q":12,"J":11}
-        return value_picture_cards.get(card.val, card.val)
+    # sorts the cards in a hand in descending order by suit and value. sorted is stable, so we can sort by value and then suit to correctly sort the hand
+    # def number_sort(card):
+    #     value_picture_cards = {"A":14,"K":13,"Q":12,"J":11}
+    #     return value_picture_cards.get(card.val, card.val)
     
-    temp = sorted(hand, key=number_sort, reverse=True)
+    temp = sorted(hand, key=(lambda c: c.val), reverse=True)
 
     def suit_sort(card):
         value_suits = {"S":4,"H":3,"D":2,"C":1}
