@@ -23,4 +23,8 @@ c = test_class(5)
 print(c["val"])
 print(c["asd"])
 
-print(max(6,None))
+#print(max(6,None))
+
+
+a,b,c = [1,2,3]
+print(c)

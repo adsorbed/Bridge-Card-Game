@@ -27,7 +27,7 @@ mainframe = ttk.Frame(root, padding="20")
 mainframe.grid(column=0, row=0)
 b = Bridge_Game(root, mainframe, hands)
 
-#b.game()
+b.game()
 
 
 # card_played = ttk.Entry(mainframe, width = 7)

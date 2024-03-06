@@ -7,7 +7,7 @@ from card_deck import *
 
 
 class Bridge_Game: # maybe this will just be the playing portion of the game, separate class for bidding?
-    def __init__(self, root: Tk, parent: ttk.Frame, hands, trumps = "", human="s", bot="random", order = ["s","w","n","e"],  practise=True):
+    def __init__(self, root: Tk, parent: ttk.Frame, hands, trumps = "NT", human="s", bot="random", order = ["s","w","n","e"],  practise=True):
         self.root = root
         self.parent = parent
         hands = map(sort_hand, hands)
@@ -204,7 +204,7 @@ class Bridge_Game: # maybe this will just be the playing portion of the game, se
         highest_of_lead_suit = c
         winner = 0 # then order[winner] will be the winner of the trick
         for i, card in enumerate(trick): 
-            if card.suit == self.trumps:
+            if card.suit == self.trumps: # no card is of the suit "no trumps", so this code works for when the contract is no trumps.
                 if highest_trump == None or card.val > highest_trump.val:
                     highest_trump = card
                     winner = i
