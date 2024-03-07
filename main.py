@@ -6,6 +6,7 @@ import time
 from card_deck import *
 from bridge_card_part import *
 from bridge_bidding import *
+from Bridge_full import *
 
 d = Deck()
 d.shuffle()
@@ -30,5 +31,14 @@ def main_bidding():
     b.perform_auction()
     root.mainloop()
 
-main_bidding()
+def main_full():
+    root = Tk()
+    root.title("Bridge")
+    mainframe = ttk.Frame(root, padding="20")
+    mainframe.grid(column=0, row=0)
+    b = Bridge(root, mainframe, hands, practise=False)
+    b.play()
+    root.mainloop()
+
+main_full()
 

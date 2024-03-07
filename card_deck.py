@@ -6,7 +6,6 @@ class Card:
         self.val = val
         self.suit = suit
         
-
     def __str__(self) -> str:
         val = self.card_appearances.get(self.val, self.val)
         return str(val) + str(self.suit)
@@ -36,16 +35,10 @@ class Deck:
     def deal(self):
         return (self.cards[:13], self.cards[13:26], self.cards[26:39], self.cards[39:52])
     
-
-
-
-
+#################
 
 def sort_hand(hand):
     # sorts the cards in a hand in descending order by suit and value. sorted is stable, so we can sort by value and then suit to correctly sort the hand
-    # def number_sort(card):
-    #     value_picture_cards = {"A":14,"K":13,"Q":12,"J":11}
-    #     return value_picture_cards.get(card.val, card.val)
     
     temp = sorted(hand, key=(lambda c: c.val), reverse=True)
 
