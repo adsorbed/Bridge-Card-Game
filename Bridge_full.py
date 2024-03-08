@@ -53,21 +53,21 @@ class Bridge:
             return self.s
         if h=="w":
             return self.w
-        if h=="n hand":
+        if h=="n_hand":
             return self.north_hand
-        if h=="e hand":
+        if h=="e_hand":
             return self.east_hand
-        if h=="s hand":
+        if h=="s_hand":
             return self.south_hand
-        if h=="w hand":
+        if h=="w_hand":
             return self.west_hand
-        if h=="n card_played":
+        if h=="n_card_played":
             return self.north_card_played
-        if h=="e card_played":
+        if h=="e_card_played":
             return self.east_card_played
-        if h=="s card_played":
+        if h=="s_card_played":
             return self.south_card_played
-        if h=="w card_played":
+        if h=="w_card_played":
             return self.west_card_played
         if h=="n_bot":
             return self.n_bot
@@ -86,7 +86,7 @@ class Bridge:
         for v in self.values:
             for s in self.suits:
                 bids.append(str(v)+s)
-        bids.extend(["pass"]) # TODO add double and redouble, then change the perform_auction function to correctly handle logic for these
+        bids.extend(["PASS"]) # TODO add double and redouble, then change the perform_auction function to correctly handle logic for these
         return bids
     
     def find_order_of_bidding(self):
@@ -111,13 +111,13 @@ class Bridge:
         
     def assign_bots(self):
         if self.human != "s":
-            self.s_bot = self.bot(self.s, "s") # possibly issues about passing by reference
+            self.s_bot = self.bot(self, self.s, "s") # possibly issues about passing by reference
         if self.human != "w":
-            self.w_bot = self.bot(self.w, "w")
+            self.w_bot = self.bot(self, self.w, "w")
         if self.human != "n":
-            self.n_bot = self.bot(self.n, "n")
+            self.n_bot = self.bot(self, self.n, "n")
         if self.human != "e":
-            self.e_bot = self.bot(self.e, "e")
+            self.e_bot = self.bot(self, self.e, "e")
 
         
 ##############################################################################
@@ -217,13 +217,14 @@ class Bridge:
             for player in self.bidding_order:
                 sleep(1.5)
                 # First, check if the last 3 bids were passes:
-                if len(self.bid_history) > 3 and self.bid_history[-3:] == ["pass","pass","pass"]:
+                if len(self.bid_history) > 3 and self.bid_history[-3:] == ["PASS","PASS","PASS"]:
                     passed_out = True
                     break
                 # Get the player's bid
+                print(self.available_bids)
                 bid = self.make_bid(player)
                 self.bid_history.append(bid)
-                if bid != "pass":
+                if bid != "PASS":
                     highest_bidder = player
                     bid_height = self.all_bids.index(bid) # all future bids must be higher than this bid
                     self.available_bids = self.all_bids[bid_height+1:]
@@ -237,7 +238,8 @@ class Bridge:
         self.tricks_to_be_made = int(final_bid[0]) + 6
         self.trumps = final_bid[1:]
         self.declarer = highest_bidder
-        self[player+"_bot"].declarer = True
+        if self.declarer != self.human:
+            self[player+"_bot"].declarer = True
         for player in self.bidding_order:
             if (self.bidding_order[player]+2)%4 == self.bidding_order[self.declarer]:
                 self.dummy = player
@@ -270,7 +272,7 @@ class Bridge:
         self.east_card_played.config(text="")
         self.south_card_played.config(text="")
         self.west_card_played.config(text="")
-        self.human_input.delete(0, 'end')
+        
 
     def valid_cards(self, player, suit):
         cards = []
@@ -286,12 +288,9 @@ class Bridge:
         # lead_suit being empty indicates that this player has the lead
         print(player)
         print(self[player])
-        if lead_suit:
-            playable_cards = self.valid_cards(player, lead_suit)
-        if not lead_suit:
-            playable_cards = self[player]
-        
-        if player == self.human:
+        # First, handle the case where the human has to make a decision:
+        if ((player == self.human) or (player == self.dummy and self.human == self.declarer)) and (self.human != self.dummy):
+            print(self.human==self.dummy)
             print("Waiting for human input")
             self.root.wait_variable(self.human_has_chosen)
             print("finished waiting")
@@ -304,24 +303,29 @@ class Bridge:
             else:
                 val = int(c[:-1])
             c = Card(val, suit)
+            if lead_suit:
+                playable_cards = self.valid_cards(player, lead_suit)
+            if not lead_suit:
+                playable_cards = self[player]
             if c in playable_cards:
-                self[self.human].remove(c)
-                self.south_hand.config(text=str(self.s))
-                self[player + " card_played"].config(text=str(c))
+                self[player].remove(c)
+                self[player + "_hand"].config(text=str(self[player]))
+                self[player + "_card_played"].config(text=str(c))
+                self.human_input.delete(0, 'end')
                 self.root.update_idletasks()
             else:
-                print(f"{c} not in hand or not following suit")
-                return self.play_card(self.human, lead_suit = lead_suit)
-        
+                raise Exception(f"{c} not in hand or not following suit")
+        # Then, handle the case where a bot has to make a decision:
         else:
-            c = self[player+"_bot"].bot_play_card(lead_suit = lead_suit)
+            if player == self.dummy:
+                c = self[self.declarer+"_bot"].choose_dummy_card(self.dummy, lead_suit = lead_suit)
+            else:
+                c = self[player+"_bot"].bot_play_card(lead_suit = lead_suit)
             print(c)
             self[player].remove(c)
-            if player == self.dummy or self.practise == True:
-                self[player+" hand"].config(text=str(self[player]))
-            self[player + " card_played"].config(text=str(c))
-            
-            
+            if (player == self.dummy) or (self.practise == True):
+                self[player+"_hand"].config(text=str(self[player]))
+            self[player + "_card_played"].config(text=str(c))
             self.root.update_idletasks()
         print(self[player])
         print()
@@ -385,3 +389,6 @@ class Bridge:
         end_game_popup.title("End of Game")
         self.root.quit()
         
+
+
+    
