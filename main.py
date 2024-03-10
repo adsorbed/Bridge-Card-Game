@@ -36,7 +36,7 @@ def main_full():
     root.title("Bridge")
     mainframe = ttk.Frame(root, padding="20")
     mainframe.grid(column=0, row=0)
-    b = Bridge(root, mainframe, hands, practise=False)
+    b = Bridge(root, mainframe, hands, practise=False, fast_mode=True)
     b.play()
     root.mainloop()
 

@@ -37,10 +37,10 @@ class random_bot(bridge_bot):
 
     def bot_make_bid(self, available_bids, bidding_history=[]):
         # Testing when the human is dummy:
-        if self.position in ["w", "e"]:
-            return "PASS"
-        if self.position == "n":
-            return "7NT"
+        # if self.position in ["w", "e"]:
+        #     return "PASS"
+        # if self.position == "n":
+        #     return "7NT"
         b = random.choice(available_bids)
         return b
 

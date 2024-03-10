@@ -14,8 +14,8 @@ class Card:
         val = self.card_appearances.get(self.val, self.val)
         return str(val) + str(self.suit)
     
-    def __eq__(self, other) -> bool:
-        return (self.suit == other.suit) and (self.val == other.val)
+    def __eq__(self, other) -> bool: 
+        return (type(self) == type(other)) and (self.suit == other.suit) and (self.val == other.val)
 
 class Deck:
     def __init__(self):

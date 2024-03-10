@@ -19,7 +19,7 @@ These bullet points will be separated with a line of #s, i.e.
 """
 
 class Bridge:
-    def __init__(self, root: Tk, parent: ttk.Frame, hands, dealer = "s", human="s", bot=random_bot, practise=True) -> None:
+    def __init__(self, root: Tk, parent: ttk.Frame, hands, dealer = "s", human="s", bot=random_bot, practise=True, fast_mode=False) -> None:
         self.root = root
         self.parent = parent
         hands = map(sort_hand, hands)
@@ -28,6 +28,7 @@ class Bridge:
         self.bot = bot
         self.assign_bots()
         self.practise = practise # TODO will reveal all the hands if true, does nothing for now
+        self.fast_mode = fast_mode # will speed up the game and automate the human for the sake of quickly testing the full game
         self.draw_hands()
         self.all_bids = self.generate_all_bids()
         self.available_bids = self.all_bids # they start off equal, the available bids will shrink as the bidding goes higher
@@ -39,6 +40,7 @@ class Bridge:
         self.human_has_chosen = BooleanVar()
         self.human_has_chosen.set(False)
         self.root.protocol("WM_DELETE_WINDOW", self.confirm_human_input)
+        self.root.bind('<Return>', self.confirm_human_input)
         self.bot = bot # AI for playing bridge. This will control the other hands
         
 
@@ -119,6 +121,8 @@ class Bridge:
         if self.human != "e":
             self.e_bot = self.bot(self, self.e, "e")
 
+
+
         
 ##############################################################################
     
@@ -152,7 +156,7 @@ class Bridge:
         self.human_input_button = ttk.Button(self.parent, text="Make Bid", command=self.confirm_human_input)
         self.human_input_button.grid(column=4,row=6,sticky=N)
 
-    def confirm_human_input(self):
+    def confirm_human_input(self, event=None):
         self.human_has_chosen.set(True)
 
     def draw_bid_history(self):
@@ -194,16 +198,21 @@ class Bridge:
 
     def make_bid(self, player):
         if player == self.human:
-            print("Waiting for human bid input")
-            self.root.wait_variable(self.human_has_chosen)
-            print("finished waiting")
-            b = self.human_input.get()
-            b = b.upper()
-            if b in self.available_bids:
-                return b
-            else: # TODO make human try again if they input an invalid bid
-                print(f"{b} not in a valid bid")
-                return
+            if not self.fast_mode:
+                print("Waiting for human bid input")
+                self.root.wait_variable(self.human_has_chosen)
+                print("finished waiting")
+                b = self.human_input.get()  
+                b = b.upper()
+                if b in self.available_bids:
+                    return b
+                else: # TODO make human try again if they input an invalid bid
+                    print(f"{b} not in a valid bid")
+                    return
+            else: 
+                return random.choice(self.available_bids)
+            
+            
         else:
             #print(self.available_bids)
             b = self[player+"_bot"].bot_make_bid(self.available_bids, self.bid_history)
@@ -215,7 +224,7 @@ class Bridge:
         bidding_round = 0 # used to draw the new bids to the correct row
         while not passed_out:
             for player in self.bidding_order:
-                sleep(1.5)
+                sleep(0.2) if self.fast_mode else sleep(1.5)
                 # First, check if the last 3 bids were passes:
                 if len(self.bid_history) > 3 and self.bid_history[-3:] == ["PASS","PASS","PASS"]:
                     passed_out = True
@@ -290,23 +299,28 @@ class Bridge:
         print(self[player])
         # First, handle the case where the human has to make a decision:
         if ((player == self.human) or (player == self.dummy and self.human == self.declarer)) and (self.human != self.dummy):
-            print(self.human==self.dummy)
-            print("Waiting for human input")
-            self.root.wait_variable(self.human_has_chosen)
-            print("finished waiting")
-            c = self.human_input.get()
-            c = c.upper()
-            print(c)
-            suit = c[-1]
-            if c[:-1] in {"J","Q","K","A"}:
-                val =  {"J":11,"Q":12,"K":13,"A":14}[c[:-1]]
-            else:
-                val = int(c[:-1])
-            c = Card(val, suit)
             if lead_suit:
                 playable_cards = self.valid_cards(player, lead_suit)
             if not lead_suit:
                 playable_cards = self[player]
+            print(self.human==self.dummy)
+            if not self.fast_mode:
+                print("Waiting for human input")
+                self.root.wait_variable(self.human_has_chosen)
+                print("finished waiting")
+                c = self.human_input.get()
+                c = c.upper()
+                print(c)
+                suit = c[-1]
+                if c[:-1] in {"J","Q","K","A"}:
+                    val =  {"J":11,"Q":12,"K":13,"A":14}[c[:-1]]
+                else:
+                    val = int(c[:-1])
+                c = Card(val, suit)
+            elif self.fast_mode:
+                c = random.choice(playable_cards)
+                print(c)
+            
             if c in playable_cards:
                 self[player].remove(c)
                 self[player + "_hand"].config(text=str(self[player]))
@@ -334,7 +348,7 @@ class Bridge:
     def play_trick(self, first_trick=False):
         self.human_has_chosen.set(False)
         trick = []
-        sleep(1)
+        sleep(0.2) if self.fast_mode else sleep(1)
         c = self.play_card(self.order[0])
         trick.append(c)
         suit = c.suit
@@ -342,9 +356,9 @@ class Bridge:
         if first_trick:
             self.draw_dummy_hand()
         for player in self.order[1:]:
-            sleep(1.5)
+            sleep(0.2) if self.fast_mode else sleep(1)
             trick.append(self.play_card(player, lead_suit = suit)) # note this calls the method, drawing the card to the table and also append the card played to the trick list
-        sleep(1.5)
+        sleep(0.2) if self.fast_mode else sleep(1.5)
         # now the players have played their cards, so we find out who won the trick:
         highest_trump = None
         highest_of_lead_suit = c
@@ -365,13 +379,48 @@ class Bridge:
             self.ns_tricks += 1
         else:
             self.ew_tricks += 1
-        sleep(3)
+        sleep(0.7) if self.fast_mode else sleep(3)
         self.clear_played_cards()
         print(trick)
         print(f"NS have {self.ns_tricks} tricks")
         print(f"EW have {self.ew_tricks} tricks")
 
 ############################################################################################
+
+    def end_game_popup(self):
+        if self.declarer in ["n","s"]:
+            if self.ns_tricks >= self.tricks_to_be_made:
+                excess = self.ns_tricks - self.tricks_to_be_made
+                Text = f"NS win {self.contract} with {excess} overtricks"
+            else:
+                deficit = self.tricks_to_be_made - self.ns_tricks
+                Text = f"EW successfuly defend against NS in {self.contract}, NS going down by {deficit} tricks"
+        if self.declarer in ["e","w"]:
+            if self.ew_tricks >= self.tricks_to_be_made:
+                excess = self.ew_tricks - self.tricks_to_be_made
+                Text = f"EW win {self.contract} with {excess} overtricks"
+            else:
+                deficit = self.tricks_to_be_made - self.ns_tricks
+                Text = f"NS successfuly defend against EW in {self.contract}, EW going down by {deficit} tricks"
+        print(Text)
+        self.popup = Toplevel(self.root)
+        self.popup.title("End of Game")
+        frame = ttk.Frame(self.popup, padding="20")
+        frame.grid(column=0, row=0) 
+        ttk.Label(frame, text=Text).grid(column=1,row=1)
+        new_game_button = ttk.Button(frame, text="New Game?", command=self.restart)
+        new_game_button.grid(column=1, row=2)
+
+    
+
+    def restart(self):
+        self.popup.destroy()
+        d = Deck()
+        d.shuffle()
+        hands = d.deal()
+        self.__init__(self.root, self.parent, hands, dealer="s", human="s", practise=True, fast_mode = self.fast_mode)
+        self.play()
+        
 
     def play(self):
         self.perform_auction()
@@ -381,14 +430,8 @@ class Bridge:
             print("--------------------------------------------------------------")
             print(f"Trick {i+1}")
             print("--------------------------------------------------------------")
-            if i == 0:
-                self.play_trick(first_trick=True)
-            else:
-                self.play_trick()
-        end_game_popup = Toplevel(self.root)
-        end_game_popup.title("End of Game")
+            self.play_trick(first_trick=(i==0))
+        self.end_game_popup()
         self.root.quit()
         
 
-
-    
