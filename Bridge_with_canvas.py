@@ -18,10 +18,12 @@ These bullet points will be separated with a line of #s, i.e.
 ##############################################################################
 """
 
-class Bridge:
-    def __init__(self, root: Tk, parent: ttk.Frame, hands, dealer = "s", human="s", bot=random_bot, practise=True, fast_mode=False) -> None:
-        self.root = root
-        self.parent = parent
+class Bridge_canvas:
+    def __init__(self, hands, dealer = "s", human="s", bot=random_bot, practise=True, fast_mode=False) -> None:
+        self.root = Tk()
+        self.root.title("Bridge")
+        self.canvas = Canvas(self.root, width=400, height=400)
+        self.canvas.pack()
         hands = map(sort_hand, hands)
         self.n, self.e, self.s, self.w = hands
         self.human = human # which player is the human. Always south for now
@@ -35,11 +37,11 @@ class Bridge:
         self.dealer = dealer
         self.bidding_order = self.find_order_of_bidding()
         self.bidding_column, self.bidding_row = 2, 7 # these are the position of the top left corner of the bidding area
-        self.draw_bid_history()
+        #self.draw_bid_history()
         
         self.human_has_chosen = BooleanVar()
         self.human_has_chosen.set(False)
-        self.root.protocol("WM_DELETE_WINDOW", self.confirm_human_input)
+        self.root.protocol("WM_DELETE_WINDOW", self.root.destroy)
         self.root.bind('<Return>', self.confirm_human_input)
         self.bot = bot # AI for playing bridge. This will control the other hands
         
@@ -127,34 +129,35 @@ class Bridge:
 ##############################################################################
     
     def draw_hands(self):
-        self.north_hand = ttk.Label(self.parent, text="n"+str(self.n))
-        if self.practise == True or self.human == "n":
-            self.north_hand.grid(column=3,row=1,sticky=N)
-        self.north_card_played = ttk.Label(self.parent, text="")
-        self.north_card_played.grid(column=3,row=2,sticky=S)
+        self.card_area = self.canvas.create_rectangle((100, 100), (300, 300), fill='green')
+        self.north_hand = self.canvas.create_text(200, 50, text="n")
+        # if self.practise == True or self.human == "n":
+        #     self.north_hand.grid(column=3,row=1,sticky=N)
+        # self.north_card_played = ttk.Label(self.canvas, text="")
+        # self.north_card_played.grid(column=3,row=2,sticky=S)
 
-        self.east_hand = ttk.Label(self.parent, text="e"+str(self.e))
-        if self.practise == True or self.human == "e":
-            self.east_hand.grid(column=5,row=3,sticky=E)
-        self.east_card_played = ttk.Label(self.parent, text="")
-        self.east_card_played.grid(column=4,row=3,sticky=W)
+        # self.east_hand = ttk.Label(self.canvas, text="e"+str(self.e))
+        # if self.practise == True or self.human == "e":
+        #     self.east_hand.grid(column=5,row=3,sticky=E)
+        # self.east_card_played = ttk.Label(self.canvas, text="")
+        # self.east_card_played.grid(column=4,row=3,sticky=W)
 
-        self.south_hand = ttk.Label(self.parent, text="s"+str(self.s))
-        if self.practise == True or self.human == "s":
-            self.south_hand.grid(column=3,row=5,sticky=S)
-        self.south_card_played = ttk.Label(self.parent, text="")
-        self.south_card_played.grid(column=3,row=4,sticky=S)
+        # self.south_hand = ttk.Label(self.canvas, text="s"+str(self.s))
+        # if self.practise == True or self.human == "s":
+        #     self.south_hand.grid(column=3,row=5,sticky=S)
+        # self.south_card_played = ttk.Label(self.canvas, text="")
+        # self.south_card_played.grid(column=3,row=4,sticky=S)
 
-        self.west_hand = ttk.Label(self.parent, text="w"+str(self.w))
-        if self.practise == True or self.human == "w":
-            self.west_hand.grid(column=1,row=3,sticky=W)
-        self.west_card_played = ttk.Label(self.parent, text="")
-        self.west_card_played.grid(column=2,row=3,sticky=E)      
+        # self.west_hand = ttk.Label(self.canvas, text="w"+str(self.w))
+        # if self.practise == True or self.human == "w":
+        #     self.west_hand.grid(column=1,row=3,sticky=W)
+        # self.west_card_played = ttk.Label(self.canvas, text="")
+        # self.west_card_played.grid(column=2,row=3,sticky=E)      
 
-        self.human_input = ttk.Entry(self.parent, width = 7)
-        self.human_input.grid(column=3,row=6,sticky=N)
-        self.human_input_button = ttk.Button(self.parent, text="Make Bid", command=self.confirm_human_input)
-        self.human_input_button.grid(column=4,row=6,sticky=N)
+        # self.human_input = ttk.Entry(self.canvas, width = 7)
+        # self.human_input.grid(column=3,row=6,sticky=N)
+        # self.human_input_button = ttk.Button(self.canvas, text="Make Bid", command=self.confirm_human_input)
+        # self.human_input_button.grid(column=4,row=6,sticky=N)
 
     def confirm_human_input(self, event=None):
         self.human_has_chosen.set(True)
@@ -162,13 +165,13 @@ class Bridge:
     def draw_bid_history(self):
         c, r =  self.bidding_column, self.bidding_row 
         s, w, n, e = [self.bidding_order[player] for player in ["s","w","n","e"]] # this allows me to draw the players in order of bidding
-        self.north_bids = ttk.Label(self.parent, text="N")
+        self.north_bids = ttk.Label(self.canvas, text="N")
         self.north_bids.grid(column=c+n,row=r)
-        self.east_bids = ttk.Label(self.parent, text="E")
+        self.east_bids = ttk.Label(self.canvas, text="E")
         self.east_bids.grid(column=c+e,row=r)
-        self.south_bids = ttk.Label(self.parent, text="S")
+        self.south_bids = ttk.Label(self.canvas, text="S")
         self.south_bids.grid(column=c+s,row=r)
-        self.west_bids = ttk.Label(self.parent, text="W")
+        self.west_bids = ttk.Label(self.canvas, text="W")
         self.west_bids.grid(column=c+w,row=r)
 
     def draw_dummy_hand(self):
@@ -179,19 +182,19 @@ class Bridge:
             self.north_hand.grid(column=3,row=1,sticky=N)
             
         if self.dummy == "e":
-            self.east_hand = ttk.Label(self.parent, text="e"+str(self.e))
+            self.east_hand = ttk.Label(self.canvas, text="e"+str(self.e))
             self.east_hand.grid(column=5,row=3,sticky=E)
-            self.east_card_played = ttk.Label(self.parent, text="")
+            self.east_card_played = ttk.Label(self.canvas, text="")
             self.east_card_played.grid(column=4,row=3,sticky=W)
         if self.dummy == "s":
-            self.south_hand = ttk.Label(self.parent, text="s"+str(self.s))
+            self.south_hand = ttk.Label(self.canvas, text="s"+str(self.s))
             self.south_hand.grid(column=3,row=5,sticky=S)
-            self.south_card_played = ttk.Label(self.parent, text="")
+            self.south_card_played = ttk.Label(self.canvas, text="")
             self.south_card_played.grid(column=3,row=4,sticky=S)
         if self.dummy == "w":
-            self.west_hand = ttk.Label(self.parent, text="w"+str(self.w))
+            self.west_hand = ttk.Label(self.canvas, text="w"+str(self.w))
             self.west_hand.grid(column=1,row=3,sticky=W)
-            self.west_card_played = ttk.Label(self.parent, text="")
+            self.west_card_played = ttk.Label(self.canvas, text="")
             self.west_card_played.grid(column=2,row=3,sticky=E) 
 
 #######################################################################
@@ -238,7 +241,7 @@ class Bridge:
                     bid_height = self.all_bids.index(bid) # all future bids must be higher than this bid
                     self.available_bids = self.all_bids[bid_height+1:]
                 c, r = self.bidding_column+self.bidding_order[player], self.bidding_row+1+bidding_round # where to draw new bid
-                ttk.Label(self.parent, text=bid).grid(column=c,row=r)
+                ttk.Label(self.canvas, text=bid).grid(column=c,row=r)
                 self.root.update_idletasks()
                 
             bidding_round += 1
@@ -270,11 +273,13 @@ class Bridge:
 
     def redraw_after_bidding(self):
         self.contract = str(self.tricks_to_be_made-6) + self.trumps
-        self.contract_label = ttk.Label(self.parent, text=f"Contract: {self.contract}")
+        self.contract_label = ttk.Label(self.canvas, text=f"Contract: {self.contract}")
         self.contract_label.grid(column=1,row=1,sticky=N)
         self.human_input_button.config(text="Play card")
-        if self.practise:
-            return
+        if not self.practise:
+            for label in self.canvas.grid_slaves():
+                if int(label.grid_info()["row"]) > 6:
+                    label.grid_forget()
         # hide the bidding
 
     def clear_played_cards(self):
@@ -419,7 +424,7 @@ class Bridge:
         d = Deck()
         d.shuffle()
         hands = d.deal()
-        self.__init__(self.root, self.parent, hands, dealer="s", human="s", practise=self.practise, fast_mode = self.fast_mode)
+        self.__init__(self.root, self.canvas, hands, dealer="s", human="s", practise=self.practise, fast_mode = self.fast_mode)
         self.play()
         
 

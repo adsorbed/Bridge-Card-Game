@@ -1,30 +1,17 @@
-from card_deck import *
-from bridge import *
+from tkinter import *
 
-# d = Deck()
-# hands = d.deal()
-# b = Bridge_Game(hands)
-# print(b.s)
-# b.play_card("s", "AD")
-# print(b.s)
-# b.play_card("s", "2D")
-# print(b.s)
+def update_text():
+    canvas.itemconfig(text_item, text="Updated Text")
 
+root = Tk()
+canvas = Canvas(root, width=200, height=300)
+canvas.pack()
 
-class test_class:
-    def __init__(self,val) -> None:
-        self.val = val
+# Create text on the canvas
+text_item = canvas.create_text(100, 50, text="Original Text", fill="black")
+canvas.create_text(100, 150, text="new Text", fill="black")
+# Create a button to update the text
+update_button = Button(root, text="Update Text", command=update_text)
+update_button.pack()
 
-    def __getitem__(self, v):
-        if v == "val":
-            return self.val
-
-c = test_class(5)
-print(c["val"])
-print(c["asd"])
-
-#print(max(6,None))
-
-
-a,b,c = [1,2,3]
-print(c)
+root.mainloop()
